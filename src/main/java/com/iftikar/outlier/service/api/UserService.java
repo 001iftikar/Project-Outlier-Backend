@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface UserService {
     RegisterResponse register(RegisterRequestDto request);
     boolean userExists(String username);
-    String generateAccessToken(String userId);
+    String generateAccessToken(String refreshToken);
 }

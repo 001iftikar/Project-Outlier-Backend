@@ -1,9 +1,6 @@
 package com.iftikar.outlier.controller;
 
-import com.iftikar.outlier.dto.AuthResponse;
-import com.iftikar.outlier.dto.RegisterRequestDto;
-import com.iftikar.outlier.dto.RegisterResponse;
-import com.iftikar.outlier.dto.VerifyEmailRequestDto;
+import com.iftikar.outlier.dto.*;
 import com.iftikar.outlier.result.ApiResponse;
 import com.iftikar.outlier.service.api.EmailVerificationService;
 import com.iftikar.outlier.service.api.UserService;
@@ -61,18 +58,40 @@ public class AuthController {
                 .body(response);
     }
 
-    @GetMapping("/refresh-token/{userId}")
-    public ResponseEntity<ApiResponse<String>> getRefreshToken(
-            @PathVariable String userId
+    @PostMapping("/refresh-token")
+    public ResponseEntity<ApiResponse<String>> refreshToken(
+            @RequestBody RefreshTokenRequest request
     ) {
-        String accessToken = userService.generateAccessToken(userId);
-        ApiResponse<String> response = new ApiResponse<>(
-                "TOKEN_GENERATIONN_SUCCESS",
-                "Access token is returned successfully",
-                accessToken
+
+        String accessToken =
+                userService.generateAccessToken(
+                        request.refreshToken()
+                );
+
+        ApiResponse<String> response =
+                new ApiResponse<>(
+                        "TOKEN_GENERATION_SUCCESS",
+                        "Access token is returned successfully",
+                        accessToken
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * To check if username is available while typing it
+     */
+    @GetMapping("/check-username/{username}")
+    ResponseEntity<ApiResponse<Boolean>> checkUsernameAvailability(
+            @PathVariable String username
+    ) {
+        boolean userExists = userService.userExists(username);
+        ApiResponse<Boolean> response = new ApiResponse<>(
+                "CHECK_SUCCESS",
+                "api returned if username is available",
+                userExists
         );
         return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
+                .ok(response);
     }
 }

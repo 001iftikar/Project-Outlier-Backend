@@ -8,6 +8,8 @@ import com.iftikar.outlier.result.ApiException;
 import com.iftikar.outlier.security.JwtService;
 import com.iftikar.outlier.service.api.EmailVerificationService;
 import com.iftikar.outlier.service.api.UserService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -55,15 +57,40 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String generateAccessToken(String userId) {
+    public String generateAccessToken(String refreshToken) {
+
+        Claims claims;
+
+        try {
+            claims = jwtService.getClaims(refreshToken);
+        } catch (JwtException | IllegalArgumentException ex) {
+
+            throw new ApiException(
+                    "INVALID_REFRESH_TOKEN",
+                    "Invalid refresh token",
+                    HttpStatus.UNAUTHORIZED
+            );
+        }
+
+        if (!jwtService.isRefreshToken(claims)) {
+            throw new ApiException(
+                    "INVALID_TOKEN_TYPE",
+                    "Provided token is not a refresh token",
+                    HttpStatus.UNAUTHORIZED
+            );
+        }
+
+        String userId = claims.getSubject();
+
         User user = userRepository.findById(userId)
-                .orElseThrow(()->
-                                new ApiException(
-                                        "NOT_FOUND",
-                                        "User not found to generate access token",
-                                        HttpStatus.NOT_FOUND
-                                )
-                        );
+                .orElseThrow(() ->
+                        new ApiException(
+                                "USER_NOT_FOUND",
+                                "User associated with refresh token was not found",
+                                HttpStatus.NOT_FOUND
+                        )
+                );
+
         return jwtService.generateToken(
                 user.getId(),
                 user.getUsername(),
