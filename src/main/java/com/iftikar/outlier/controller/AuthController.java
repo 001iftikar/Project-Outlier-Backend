@@ -10,10 +10,7 @@ import com.iftikar.outlier.service.api.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -61,6 +58,21 @@ public class AuthController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
+                .body(response);
+    }
+
+    @GetMapping("/refresh-token/{userId}")
+    public ResponseEntity<ApiResponse<String>> getRefreshToken(
+            @PathVariable String userId
+    ) {
+        String accessToken = userService.generateAccessToken(userId);
+        ApiResponse<String> response = new ApiResponse<>(
+                "TOKEN_GENERATIONN_SUCCESS",
+                "Access token is returned successfully",
+                accessToken
+        );
+        return ResponseEntity
+                .status(HttpStatus.OK)
                 .body(response);
     }
 }

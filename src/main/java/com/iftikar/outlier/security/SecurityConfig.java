@@ -41,8 +41,6 @@ public class SecurityConfig {
 
                         // Login and refresh don't require an access token
                         .requestMatchers(
-                                "/api/v1/auth/login",
-                                "/api/v1/auth/refresh-token",
                                 "/api/v1/auth/**",
                                 "/api/v1/health"
                         ).permitAll()
