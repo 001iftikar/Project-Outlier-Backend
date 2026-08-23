@@ -1,11 +1,10 @@
 package com.iftikar.outlier.service.impl;
 
-import com.iftikar.outlier.dto.AuthResponse;
 import com.iftikar.outlier.dto.RegisterRequestDto;
-import com.iftikar.outlier.entity.User;
+import com.iftikar.outlier.dto.RegisterResponse;
 import com.iftikar.outlier.repository.UserRepository;
 import com.iftikar.outlier.result.ApiException;
-import com.iftikar.outlier.security.JwtService;
+import com.iftikar.outlier.service.api.EmailVerificationService;
 import com.iftikar.outlier.service.api.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,16 +14,16 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final EmailVerificationService emailVerificationService;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailVerificationService emailVerificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.jwtService = jwtService;
+        this.emailVerificationService = emailVerificationService;
     }
 
     @Override
-    public AuthResponse register(RegisterRequestDto request) {
+    public RegisterResponse register(RegisterRequestDto request) {
         if (userRepository.existsByEmail(request.email())) {
 
             throw new ApiException(
@@ -35,32 +34,15 @@ public class UserServiceImpl implements UserService {
         }
 
         String passwordHash = passwordEncoder.encode(request.password());
-        User user = User.builder()
-                .username(request.username())
-                .email(request.email())
-                .passwordHash(passwordHash)
-                .name(request.name())
-                .role(request.role())
-                .build();
-
-        User savedUser = userRepository.save(user);
-        String accessToken = jwtService.generateToken(
-                savedUser.getId(),
-                savedUser.getUsername(),
-                savedUser.getRole(),
-                true
-        );
-        String refreshToken = jwtService.generateToken(
-                savedUser.getId(),
-                savedUser.getUsername(),
-                savedUser.getRole(),
-                false
+        emailVerificationService.createVerification(
+                request.email(),
+                request.username(),
+                passwordHash,
+                request.name(),
+                request.role()
         );
 
-        return new AuthResponse(
-                accessToken,
-                refreshToken
-        );
+        return new RegisterResponse(request.email());
     }
 
     @Override

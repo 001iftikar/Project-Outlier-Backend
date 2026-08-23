@@ -16,3 +16,7 @@ jwt:
   secret: ${JWT_SECRET}
   access-expiration: 900000
   refresh-expiration: 31536000000
+brevo:
+  api-key: ${BREVO_API_KEY}
+  sender-email: ${BREVO_SENDER_EMAIL}
+  sender-name: ${BREVO_SENDER_NAME}

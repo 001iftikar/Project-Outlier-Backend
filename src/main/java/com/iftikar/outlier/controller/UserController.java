@@ -2,6 +2,7 @@ package com.iftikar.outlier.controller;
 
 import com.iftikar.outlier.dto.AuthResponse;
 import com.iftikar.outlier.dto.RegisterRequestDto;
+import com.iftikar.outlier.dto.RegisterResponse;
 import com.iftikar.outlier.result.ApiResponse;
 import com.iftikar.outlier.service.api.UserService;
 import jakarta.validation.Valid;
@@ -21,21 +22,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping
-    public ResponseEntity<ApiResponse<AuthResponse>> createUser(
-           @Valid @RequestBody RegisterRequestDto request
-            ) {
-        AuthResponse authResponse = userService.register(request);
-        ApiResponse<AuthResponse> response =
-                new ApiResponse<>(
-                        "REGISTER_SUCCESS",
-                        "Account created successfully",
-                        authResponse
-                );
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
-    }
+
 }
 
 
