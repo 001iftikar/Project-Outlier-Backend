@@ -21,7 +21,7 @@ public record RegisterRequestDto(
 
         @NotBlank(message = "Name is required")
         String name,
-        @NotBlank(message = "Name is required")
+        @NotBlank(message = "Role is required")
         String role
 ) {
 }
