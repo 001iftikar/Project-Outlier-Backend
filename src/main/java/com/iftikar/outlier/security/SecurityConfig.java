@@ -43,7 +43,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/auth/login",
                                 "/api/v1/auth/refresh-token",
-                                "/api/v1/auth/**"
+                                "/api/v1/auth/**",
+                                "/api/v1/health"
                         ).permitAll()
 
                         // Registration doesn't require authentication
