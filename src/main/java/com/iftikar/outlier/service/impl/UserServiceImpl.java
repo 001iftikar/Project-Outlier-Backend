@@ -1,5 +1,7 @@
 package com.iftikar.outlier.service.impl;
 
+import com.iftikar.outlier.dto.AuthResponse;
+import com.iftikar.outlier.dto.LoginRequestDto;
 import com.iftikar.outlier.dto.RegisterRequestDto;
 import com.iftikar.outlier.dto.RegisterResponse;
 import com.iftikar.outlier.entity.User;
@@ -96,6 +98,50 @@ public class UserServiceImpl implements UserService {
                 user.getUsername(),
                 user.getRole(),
                 true
+        );
+    }
+
+    @Override
+    public AuthResponse login(LoginRequestDto request) {
+        User fetchedUser = userRepository.findByUsername(request.username())
+                .orElseThrow(() ->
+                        new ApiException(
+                                "USER_NOT_FOUND",
+                                "No user by this username",
+                                HttpStatus.NOT_FOUND
+                        )
+                );
+        String hashedPassword = fetchedUser.getPasswordHash();
+        String userId = fetchedUser.getId();
+        String role = fetchedUser.getRole();
+        boolean validPassword =
+                passwordEncoder.matches(
+                        request.password(),
+                        hashedPassword
+                );
+        if (!validPassword) {
+            throw new ApiException(
+                    "PASSWORD_MISMATCH",
+                    "Password does not match with the username",
+                    HttpStatus.UNAUTHORIZED
+            );
+        }
+
+        String accessToken = jwtService.generateToken(
+                userId,
+                request.username(),
+                role,
+                true
+        );
+        String refreshToken = jwtService.generateToken(
+                userId,
+                request.username(),
+                role,
+                false
+        );
+        return new AuthResponse(
+                accessToken,
+                refreshToken
         );
     }
 }

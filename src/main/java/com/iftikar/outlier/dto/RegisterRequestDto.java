@@ -9,7 +9,7 @@ public record RegisterRequestDto(
         String username,
 
         @NotBlank(message = "Email is required")
-        @Email(message = "Invalid email address")
+        @Email(message = "Invalid username address")
         String email,
 
         @NotBlank(message = "Password is required")

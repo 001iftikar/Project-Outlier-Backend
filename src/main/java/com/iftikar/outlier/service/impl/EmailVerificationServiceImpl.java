@@ -82,7 +82,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
                         .orElseThrow(() ->
                                 new ApiException(
                                         "VERIFICATION_NOT_FOUND",
-                                        "No pending email verification found",
+                                        "No pending username verification found",
                                         HttpStatus.NOT_FOUND
                                 )
                         );

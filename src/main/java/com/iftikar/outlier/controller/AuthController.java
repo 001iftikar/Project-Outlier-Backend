@@ -28,14 +28,14 @@ public class AuthController {
         ApiResponse<RegisterResponse> response =
                 new ApiResponse<>(
                         "OTP_SENT",
-                        "Verification code sent to email",
+                        "Verification code sent to username",
                         result
                 );
         return ResponseEntity
                 .ok(response);
     }
 
-    @PostMapping("/verify-email")
+    @PostMapping("/verify-username")
     public ResponseEntity<ApiResponse<AuthResponse>> verifyEmail(
             @Valid @RequestBody VerifyEmailRequestDto request
     ) {
@@ -94,4 +94,35 @@ public class AuthController {
         return ResponseEntity
                 .ok(response);
     }
+
+    @PostMapping("/login")
+    ResponseEntity<ApiResponse<AuthResponse>> login(
+            @RequestBody LoginRequestDto request
+    ) {
+        AuthResponse authResponse = userService.login(request);
+        ApiResponse<AuthResponse> response = new ApiResponse<>(
+                "LOGIN_SUCCESS",
+                "User varification successful",
+                authResponse
+        );
+        return ResponseEntity.ok(response);
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
