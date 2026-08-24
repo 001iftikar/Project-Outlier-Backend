@@ -67,12 +67,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 6. Extract information from JWT
         String userId = claims.getSubject();
         String username = claims.get("username", String.class);
-        String role = claims.get("role", String.class);
+        String role = claims.get("isDeveloper", String.class);
 
         // 7. Don't overwrite an existing authentication
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // 8. Convert role into Spring Security authority
+            // 8. Convert isDeveloper into Spring Security authority
             List<GrantedAuthority> authorities = List.of(
                     new SimpleGrantedAuthority("ROLE_" + role)
             );

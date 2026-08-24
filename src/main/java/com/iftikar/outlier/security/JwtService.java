@@ -36,7 +36,7 @@ public class JwtService {
         Map<String, Object> claims = Map.of(
                 "type", tokenType,
                 "username", username,
-                "role", role
+                "isDeveloper", role
         );
 
         return Jwts.builder()
