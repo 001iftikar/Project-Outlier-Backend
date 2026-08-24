@@ -1,9 +1,6 @@
 package com.iftikar.outlier.service.impl;
 
-import com.iftikar.outlier.dto.AuthResponse;
-import com.iftikar.outlier.dto.LoginRequestDto;
-import com.iftikar.outlier.dto.RegisterRequestDto;
-import com.iftikar.outlier.dto.RegisterResponse;
+import com.iftikar.outlier.dto.*;
 import com.iftikar.outlier.entity.User;
 import com.iftikar.outlier.repository.UserRepository;
 import com.iftikar.outlier.result.ApiException;
@@ -15,6 +12,8 @@ import io.jsonwebtoken.JwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -106,9 +105,9 @@ public class UserServiceImpl implements UserService {
         User fetchedUser = userRepository.findByUsername(request.username())
                 .orElseThrow(() ->
                         new ApiException(
-                                "USER_NOT_FOUND",
-                                "No user by this username",
-                                HttpStatus.NOT_FOUND
+                                "PASSWORD_MISMATCH",
+                                "Actually there is no one with this username",
+                                HttpStatus.UNAUTHORIZED
                         )
                 );
         String hashedPassword = fetchedUser.getPasswordHash();
@@ -142,6 +141,23 @@ public class UserServiceImpl implements UserService {
         return new AuthResponse(
                 accessToken,
                 refreshToken
+        );
+    }
+
+    @Override
+    public DrawerUserInfoDto getDrawerUserInfo(String userId) {
+        User fetchedUser = userRepository.findById(userId).orElseThrow(() ->
+                        new ApiException(
+                                "USER_NOT_FOUND",
+                                "Authenticated user was not found",
+                                HttpStatus.NOT_FOUND
+                        )
+                );
+        String name = fetchedUser.getName();
+        String role = fetchedUser.getRole();
+        return new DrawerUserInfoDto(
+                name,
+                Objects.equals(role, "DEVELOPER")
         );
     }
 }

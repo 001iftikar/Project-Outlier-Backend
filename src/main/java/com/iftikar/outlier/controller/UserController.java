@@ -1,15 +1,11 @@
 package com.iftikar.outlier.controller;
 
-import com.iftikar.outlier.dto.AuthResponse;
-import com.iftikar.outlier.dto.RegisterRequestDto;
-import com.iftikar.outlier.dto.RegisterResponse;
+import com.iftikar.outlier.dto.DrawerUserInfoDto;
 import com.iftikar.outlier.result.ApiResponse;
 import com.iftikar.outlier.service.api.UserService;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,7 +18,19 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/drawer-user-info")
+    ResponseEntity<ApiResponse<DrawerUserInfoDto>> getDrawerUserInfo(
+            @AuthenticationPrincipal String userId
+    ) {
+        DrawerUserInfoDto info = userService.getDrawerUserInfo(userId);
+        ApiResponse<DrawerUserInfoDto> response = new ApiResponse<>(
+                "SUCCESS",
+                "success",
+                info
+        );
 
+        return ResponseEntity.ok(response);
+    }
 }
 
 
