@@ -3,6 +3,8 @@ package com.iftikar.outlier.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
+
 @Entity
 @Getter
 @Setter
@@ -25,4 +27,9 @@ public class User {
     private String name;
     @Column(nullable = false)
     private String role;
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(nullable = false)
+    private Instant updatedAt;
 }
