@@ -37,6 +37,9 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "thumbnail_url", nullable = false, length = 1000)
+    private String thumbnailUrl;
+
     @Column(name = "github_url", length = 500)
     private String githubUrl;
 
