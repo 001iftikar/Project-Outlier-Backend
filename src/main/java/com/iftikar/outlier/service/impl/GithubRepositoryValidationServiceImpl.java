@@ -5,6 +5,7 @@ import com.iftikar.outlier.result.ApiException;
 import com.iftikar.outlier.service.api.GithubRepositoryValidationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -27,7 +28,9 @@ public class GithubRepositoryValidationServiceImpl implements GithubRepositoryVa
 
     private final RestClient githubApi;
 
-    public GithubRepositoryValidationServiceImpl() {
+    public GithubRepositoryValidationServiceImpl(
+            @Value("${GITHUB_TOKEN:}") String githubToken
+    ) {
         HttpClient httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(3))
                 .followRedirects(HttpClient.Redirect.NEVER)
@@ -38,7 +41,7 @@ public class GithubRepositoryValidationServiceImpl implements GithubRepositoryVa
 
         requestFactory.setReadTimeout(Duration.ofSeconds(5));
 
-        this.githubApi = RestClient.builder()
+        RestClient.Builder builder = RestClient.builder()
                 .baseUrl("https://api.github.com")
                 .requestFactory(requestFactory)
                 .defaultHeader(
@@ -52,8 +55,16 @@ public class GithubRepositoryValidationServiceImpl implements GithubRepositoryVa
                 .defaultHeader(
                         "User-Agent",
                         "Outlier"
-                )
-                .build();
+                );
+
+        if (githubToken != null && !githubToken.isBlank()) {
+            builder.defaultHeader(
+                    HttpHeaders.AUTHORIZATION,
+                    "Bearer " + githubToken.trim()
+            );
+        }
+
+        this.githubApi = builder.build();
     }
 
     @Override
