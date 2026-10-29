@@ -14,6 +14,7 @@ import org.springframework.web.client.RestClientException;
 
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Locale;
 
@@ -61,17 +62,63 @@ public class GithubRepositoryValidationServiceImpl implements GithubRepositoryVa
         // 1. Validate the URL locally before calling GitHub.
         ParsedRepository repository = parseRepositoryUrl(url);
 
-        // 2. Ask GitHub whether the repository is accessible.
         try {
-            int httpStatus = githubApi.get()
+            // 2. Call GitHub and capture the response for debugging.
+            GitHubApiResponse apiResponse = githubApi.get()
                     .uri(
                             "/repos/{owner}/{repository}",
                             repository.owner(),
                             repository.repository()
                     )
-                    .exchange((request, response) ->
-                            response.getStatusCode().value()
-                    );
+                    .exchange((request, response) -> {
+
+                        int status = response.getStatusCode().value();
+
+                        String body = "";
+
+                        // Read the response body for non-success responses.
+                        if (status != 200) {
+                            body = new String(
+                                    response.getBody().readAllBytes(),
+                                    StandardCharsets.UTF_8
+                            );
+                        }
+
+                        String remaining = response.getHeaders()
+                                .getFirst("X-RateLimit-Remaining");
+
+                        String reset = response.getHeaders()
+                                .getFirst("X-RateLimit-Reset");
+
+                        String retryAfter = response.getHeaders()
+                                .getFirst("Retry-After");
+
+                        String requestId = response.getHeaders()
+                                .getFirst("X-GitHub-Request-Id");
+
+                        if (status != 200 && status != 404) {
+                            log.warn(
+                                    "GitHub API response: status={}, "
+                                            + "repository={}, remaining={}, "
+                                            + "reset={}, retryAfter={}, "
+                                            + "requestId={}, body={}",
+                                    status,
+                                    repository.normalizedUrl(),
+                                    remaining,
+                                    reset,
+                                    retryAfter,
+                                    requestId,
+                                    body
+                            );
+                        }
+
+                        return new GitHubApiResponse(
+                                status,
+                                body
+                        );
+                    });
+
+            int httpStatus = apiResponse.status();
 
             return switch (httpStatus) {
 
@@ -110,8 +157,10 @@ public class GithubRepositoryValidationServiceImpl implements GithubRepositoryVa
             };
 
         } catch (RestClientException exception) {
-            log.warn(
-                    "GitHub API request failed during repository verification",
+
+            log.error(
+                    "Failed to communicate with GitHub while checking repository {}",
+                    repository.normalizedUrl(),
                     exception
             );
 
@@ -224,6 +273,12 @@ public class GithubRepositoryValidationServiceImpl implements GithubRepositoryVa
             String owner,
             String repository,
             String normalizedUrl
+    ) {
+    }
+
+    private record GitHubApiResponse(
+            int status,
+            String body
     ) {
     }
 }
