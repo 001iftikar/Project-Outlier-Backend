@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Outlier" type="Application" factoryName="Application">
+    <option name="envFilePaths">
+      <option value="$USER_HOME$/Downloads/Project-Outlier-Backend.env" />
+    </option>
+    <option name="MAIN_CLASS_NAME" value="com.iftikar.outlier.OutlierApplication" />
+    <module name="outlier.main" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

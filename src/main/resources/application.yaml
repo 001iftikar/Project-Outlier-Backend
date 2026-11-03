@@ -22,3 +22,6 @@ brevo:
   sender-name: ${BREVO_SENDER_NAME}
 github:
   token: ${GITHUB_TOKEN}
+google:
+  safe-browsing:
+    api-key: ${GOOGLE_SAFE_BROWSING_API_KEY}

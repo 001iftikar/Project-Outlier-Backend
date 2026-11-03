@@ -2,8 +2,10 @@ package com.iftikar.outlier.controller;
 
 import com.iftikar.outlier.dto.GithubRepositoryCheckRequest;
 import com.iftikar.outlier.dto.GithubRepositoryCheckResponse;
+import com.iftikar.outlier.dto.LiveUrlCheckRequest;
+import com.iftikar.outlier.dto.LiveUrlCheckResponse;
 import com.iftikar.outlier.result.ApiResponse;
-import com.iftikar.outlier.service.api.GithubRepositoryValidationService;
+import com.iftikar.outlier.service.api.UrlValidationService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,15 +14,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/github")
-public class GitHubRepositoryController {
+@RequestMapping("/api/v1/url-validation")
+public class UrlValidationController {
 
-    private final GithubRepositoryValidationService githubRepositoryValidationService;
+    private final UrlValidationService urlValidationService;
 
-    public GitHubRepositoryController(
-            GithubRepositoryValidationService githubRepositoryValidationService
+    public UrlValidationController(
+            UrlValidationService urlValidationService
     ) {
-        this.githubRepositoryValidationService = githubRepositoryValidationService;
+        this.urlValidationService = urlValidationService;
     }
 
     @PostMapping("/validate-repository")
@@ -28,7 +30,7 @@ public class GitHubRepositoryController {
             @Valid @RequestBody GithubRepositoryCheckRequest request
     ) {
         GithubRepositoryCheckResponse result =
-                githubRepositoryValidationService.checkRepository(request.url());
+                urlValidationService.checkRepository(request.url());
 
         ApiResponse<GithubRepositoryCheckResponse> response = switch (result.status()) {
             case VALID -> new ApiResponse<>(
@@ -49,6 +51,24 @@ public class GitHubRepositoryController {
                     result
             );
         };
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/live-url")
+    public ResponseEntity<ApiResponse<LiveUrlCheckResponse>> checkLiveUrl(
+            @Valid @RequestBody LiveUrlCheckRequest request
+    ) {
+
+        LiveUrlCheckResponse result =
+                urlValidationService.checkLiveUrl(request.url());
+
+        ApiResponse<LiveUrlCheckResponse> response =
+                new ApiResponse<>(
+                        "SUCCESS",
+                        "URL check completed.",
+                        result
+                );
+
         return ResponseEntity.ok(response);
     }
 }

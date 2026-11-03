@@ -1,8 +1,10 @@
 package com.iftikar.outlier.service.impl;
 
 import com.iftikar.outlier.dto.GithubRepositoryCheckResponse;
+import com.iftikar.outlier.dto.LiveUrlCheckResponse;
+import com.iftikar.outlier.integration.google.GoogleSafeBrowsingClient;
 import com.iftikar.outlier.result.ApiException;
-import com.iftikar.outlier.service.api.GithubRepositoryValidationService;
+import com.iftikar.outlier.service.api.UrlValidationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,10 +12,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.*;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -21,16 +23,18 @@ import java.util.Locale;
 
 
 @Service
-public class GithubRepositoryValidationServiceImpl implements GithubRepositoryValidationService {
+public class UrlValidationServiceImpl implements UrlValidationService {
 
     private static final Logger log =
-            LoggerFactory.getLogger(GithubRepositoryValidationServiceImpl.class);
+            LoggerFactory.getLogger(UrlValidationServiceImpl.class);
 
     private final RestClient githubApi;
+    private final GoogleSafeBrowsingClient googleSafeBrowsingClient;
 
-    public GithubRepositoryValidationServiceImpl(
-            @Value("${GITHUB_TOKEN:}") String githubToken
+    public UrlValidationServiceImpl(
+            @Value("${GITHUB_TOKEN:}") String githubToken, GoogleSafeBrowsingClient googleSafeBrowsingClient
     ) {
+        this.googleSafeBrowsingClient = googleSafeBrowsingClient;
         HttpClient httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(3))
                 .followRedirects(HttpClient.Redirect.NEVER)
@@ -183,6 +187,85 @@ public class GithubRepositoryValidationServiceImpl implements GithubRepositoryVa
         }
     }
 
+    @Override
+    public LiveUrlCheckResponse checkLiveUrl(String url) {
+        String normalizedUrl = validateHttpUrl(url);
+
+        try {
+            boolean threatFound =
+                    googleSafeBrowsingClient.isThreatListed(normalizedUrl);
+
+            if (threatFound) {
+                return new LiveUrlCheckResponse(
+                        LiveUrlCheckResponse.Status.UNSAFE,
+                        false
+                );
+            }
+
+            return new LiveUrlCheckResponse(
+                    LiveUrlCheckResponse.Status.SAFE,
+                    true
+            );
+
+        } catch (RestClientResponseException exception) {
+
+            String responseBody = exception.getResponseBodyAsString();
+
+            if (responseBody.length() > 500) {
+                responseBody = responseBody.substring(0, 500);
+            }
+
+            log.error(
+                    "Google Safe Browsing HTTP error. Status: {}, Response: {}",
+                    exception.getStatusCode().value(),
+                    responseBody
+            );
+
+        } catch (ResourceAccessException exception) {
+
+            log.error(
+                    "Google Safe Browsing network/timeout error: {}",
+                    exception.getClass().getSimpleName()
+            );
+
+        } catch (UnknownContentTypeException exception) {
+
+            String responseBody = exception.getResponseBodyAsString();
+
+            if (responseBody.length() > 500) {
+                responseBody = responseBody.substring(0, 500);
+            }
+
+            log.error(
+                    "Google Safe Browsing returned unsupported content type. " +
+                            "Content-Type: {}, HTTP Status: {}, Response: {}",
+                    exception.getContentType(),
+                    exception.getStatusCode().value(),
+                    responseBody
+            );
+
+        }
+        catch (RestClientException exception) {
+
+            log.error(
+                    "Google Safe Browsing request failed: {}",
+                    exception.getClass().getSimpleName()
+            );
+
+        } catch (IllegalStateException exception) {
+
+            log.error(
+                    "Google Safe Browsing configuration/response error: {}",
+                    exception.getMessage()
+            );
+        }
+
+        return new LiveUrlCheckResponse(
+                LiveUrlCheckResponse.Status.UNVERIFIED,
+                false
+        );
+    }
+
     private ParsedRepository parseRepositoryUrl(String rawUrl) {
 
         if (rawUrl == null
@@ -278,6 +361,50 @@ public class GithubRepositoryValidationServiceImpl implements GithubRepositoryVa
                         + "https://github.com/owner/repository.",
                 HttpStatus.BAD_REQUEST
         );
+    }
+
+    private String validateHttpUrl(String rawUrl) {
+
+        if (rawUrl == null || rawUrl.isBlank()) {
+            throw new ApiException(
+                    "INVALID_URL",
+                    "URL is required.",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
+
+        try {
+            URI uri = new URI(rawUrl.trim());
+
+            String scheme = uri.getScheme();
+
+            boolean validScheme =
+                    "http".equalsIgnoreCase(scheme)
+                            || "https".equalsIgnoreCase(scheme);
+
+            if (!uri.isAbsolute()
+                    || uri.isOpaque()
+                    || !validScheme
+                    || uri.getHost() == null
+                    || uri.getUserInfo() != null) {
+
+                throw new ApiException(
+                        "INVALID_URL",
+                        "A valid HTTP or HTTPS URL is required.",
+                        HttpStatus.BAD_REQUEST
+                );
+            }
+
+            return uri.toASCIIString();
+
+        } catch (URISyntaxException exception) {
+
+            throw new ApiException(
+                    "INVALID_URL",
+                    "The provided URL has an invalid format.",
+                    HttpStatus.BAD_REQUEST
+            );
+        }
     }
 
     private record ParsedRepository(

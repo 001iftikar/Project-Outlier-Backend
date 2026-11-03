@@ -1,0 +1,37 @@
+
+syntax = "proto3";
+
+package outlier.safebrowsing.v5;
+
+import "google/protobuf/duration.proto";
+
+option java_package = "com.iftikar.outlier.integration.google.proto";
+option java_multiple_files = true;
+option java_outer_classname = "SafeBrowsingV5Proto";
+
+message SearchUrlsResponse {
+
+    repeated ThreatUrl threats = 1;
+
+    google.protobuf.Duration cache_duration = 2;
+}
+
+message ThreatUrl {
+
+    string url = 1;
+
+    repeated ThreatType threat_types = 2;
+}
+
+enum ThreatType {
+
+    THREAT_TYPE_UNSPECIFIED = 0;
+
+    MALWARE = 1;
+
+    SOCIAL_ENGINEERING = 2;
+
+    UNWANTED_SOFTWARE = 3;
+
+    POTENTIALLY_HARMFUL_APPLICATION = 4;
+}
