@@ -12,6 +12,11 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 50MB
 jwt:
   secret: ${JWT_SECRET}
   access-expiration: 900000
@@ -25,3 +30,7 @@ github:
 google:
   safe-browsing:
     api-key: ${GOOGLE_SAFE_BROWSING_API_KEY}
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}

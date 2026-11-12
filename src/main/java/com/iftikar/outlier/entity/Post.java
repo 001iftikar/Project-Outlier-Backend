@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -53,10 +55,33 @@ public class Post {
     @Column(name = "comments_count", nullable = false)
     @Builder.Default
     private long commentsCount = 0;
+    @ElementCollection
+    @CollectionTable(
+            name = "post_tags",
+            joinColumns = @JoinColumn(
+                    name = "post_id",
+                    foreignKey = @ForeignKey(name = "fk_post_tags_post")
+            )
+    )
+    @Column(name = "tag", nullable = false, length = 50)
+    @Builder.Default
+    private List<String> tags = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt;
 
     @Column(nullable = false)
     private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        Instant now = Instant.now();
+        createdAt = now;
+        updatedAt = now;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

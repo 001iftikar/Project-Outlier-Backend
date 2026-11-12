@@ -15,12 +15,10 @@ import lombok.*;
                 @UniqueConstraint(
                         name = "uk_post_image_position",
                         columnNames = {"post_id", "position"}
-                )
-        },
-        indexes = {
-                @Index(
-                        name = "idx_post_images_post",
-                        columnList = "post_id, position"
+                ),
+                @UniqueConstraint(
+                        name = "uk_post_image_public_id",
+                        columnNames = "public_id"
                 )
         }
 )
@@ -38,8 +36,11 @@ public class PostImage {
     )
     private Post post;
 
-    @Column(nullable = false, length = 1000)
+    @Column(nullable = false, length = 2048)
     private String imageUrl;
+
+    @Column(name = "public_id", nullable = false, length = 255)
+    private String publicId;
 
     @Column(nullable = false)
     private int position;

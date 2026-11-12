@@ -25,6 +25,8 @@ protobuf {
 }
 
 dependencies {
+	// cloudinary
+	implementation 'com.cloudinary:cloudinary-http5:2.6.0'
 	// protobuf
 	implementation 'com.google.protobuf:protobuf-java:4.36.2'
 	// mail

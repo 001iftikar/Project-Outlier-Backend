@@ -1,7 +1,12 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Outlier" type="Application" factoryName="Application">
+    <envs>
+      <env name="CLOUDINARY_CLOUD_NAME" value="ddkoohb4d" />
+      <env name="CLOUDINARY_API_KEY" value="621649884182251" />
+      <env name="CLOUDINARY_API_SECRET" value="8a-9WTf1wOhIn37LYAst2szhFMQ" />
+    </envs>
     <option name="envFilePaths">
-      <option value="$USER_HOME$/Downloads/Project-Outlier-Backend.env" />
+      <option value="$PROJECT_DIR$/.env" />
     </option>
     <option name="MAIN_CLASS_NAME" value="com.iftikar.outlier.OutlierApplication" />
     <module name="outlier.main" />
