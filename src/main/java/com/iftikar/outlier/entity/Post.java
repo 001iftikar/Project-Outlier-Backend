@@ -16,7 +16,14 @@ import java.util.List;
 @Table(
         name = "posts",
         indexes = {
-                @Index(name = "idx_posts_user_created", columnList = "user_id, created_at")
+                @Index(
+                        name = "idx_posts_user_created",
+                        columnList = "user_id, created_at"
+                ),
+                @Index(
+                        name = "idx_posts_feed_created_id",
+                        columnList = "created_at, id"
+                )
         }
 )
 public class Post {
