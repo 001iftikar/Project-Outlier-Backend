@@ -39,7 +39,7 @@ public class EmailServiceImpl implements EmailService {
         );
 
         restClient.post()
-                .uri("/v3/smtp/username")
+                .uri("/v3/smtp/email")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(request)
                 .retrieve()

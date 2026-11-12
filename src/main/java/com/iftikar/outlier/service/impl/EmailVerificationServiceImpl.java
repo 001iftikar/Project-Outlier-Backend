@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
@@ -41,6 +42,7 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         this.userRepository = userRepository;
     }
 
+    @Transactional
     @Override
     public void createVerification(String email, String username, String passwordHash, String name, String role) {
         String otp = otpService.generateOtp();
@@ -48,25 +50,23 @@ public class EmailVerificationServiceImpl implements EmailVerificationService {
         String otpHash = passwordEncoder.encode(otp);
 
         Instant now = Instant.now();
+        Instant expiresAt = now.plus(Duration.ofMinutes(5));
 
         EmailVerification verification =
-                EmailVerification.builder()
-                        .email(email)
-                        .username(username)
-                        .passwordHash(passwordHash)
-                        .name(name)
-                        .role(role)
-                        .otpHash(otpHash)
-                        .expiresAt(
-                                now.plus(5, ChronoUnit.MINUTES)
-                        )
-                        .attempts(0)
-                        .createdAt(now)
-                        .build();
+                verificationRepository.findByEmailIgnoreCase(email)
+                        .orElseGet(EmailVerification::new);
 
-        verificationRepository.deleteByEmail(email);
+        verification.setEmail(email);
+        verification.setUsername(username);
+        verification.setPasswordHash(passwordHash);
+        verification.setName(name);
+        verification.setRole(role);
+        verification.setOtpHash(otpHash);
+        verification.setExpiresAt(expiresAt);
+        verification.setAttempts(0);
+        verification.setCreatedAt(now);
 
-        verificationRepository.save(verification);
+        verificationRepository.saveAndFlush(verification);
 
         emailService.sendVerificationOtp(
                 email,
