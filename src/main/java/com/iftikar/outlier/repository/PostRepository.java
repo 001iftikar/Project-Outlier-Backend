@@ -2,14 +2,16 @@
 package com.iftikar.outlier.repository;
 
 import com.iftikar.outlier.entity.Post;
-
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, String> {
 
@@ -72,6 +74,15 @@ public interface PostRepository extends JpaRepository<Post, String> {
             @Param("postIds") List<String> postIds
     );
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+        SELECT p
+        FROM Post p
+        WHERE p.id = :postId
+        """)
+    Optional<Post> findByIdForUpdate(
+            @Param("postId") String postId
+    );
 
     interface FeedCursorProjection {
         String getPostId();
