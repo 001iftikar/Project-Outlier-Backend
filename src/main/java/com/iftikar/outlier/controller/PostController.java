@@ -4,9 +4,11 @@ import com.iftikar.outlier.dto.CreatePostRequest;
 import com.iftikar.outlier.dto.CreatePostResponse;
 import com.iftikar.outlier.dto.PostFeedResponse;
 import com.iftikar.outlier.dto.PostLikeResponse;
+import com.iftikar.outlier.dto.PostSearchResponse;
 import com.iftikar.outlier.result.ApiResponse;
 import com.iftikar.outlier.service.api.PostFeedService;
 import com.iftikar.outlier.service.api.PostLikeService;
+import com.iftikar.outlier.service.api.PostSearchService;
 import com.iftikar.outlier.service.api.PostService;
 
 import jakarta.validation.Valid;
@@ -30,6 +32,7 @@ public class PostController {
     private final PostService postService;
     private final PostFeedService postFeedService;
     private final PostLikeService postLikeService;
+    private final PostSearchService postSearchService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<CreatePostResponse>> createPost(
@@ -86,6 +89,39 @@ public class PostController {
                         "Posts retrieved successfully.",
                         result
                 );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<PostSearchResponse>> searchPosts(
+
+            @AuthenticationPrincipal String userId,
+
+            @RequestParam("q") String query,
+
+            @RequestParam(required = false) String cursor,
+
+            @RequestParam(required = false)
+            String matchedTechStackInsteadCursor,
+
+            @RequestParam(defaultValue = "20") int size
+
+    ) {
+
+        PostSearchResponse result = postSearchService.searchPosts(
+                userId,
+                query,
+                cursor,
+                matchedTechStackInsteadCursor,
+                size
+        );
+
+        ApiResponse<PostSearchResponse> response = new ApiResponse<>(
+                "SUCCESS",
+                "Search results retrieved successfully.",
+                result
+        );
 
         return ResponseEntity.ok(response);
     }
